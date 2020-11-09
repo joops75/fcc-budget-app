@@ -52,4 +52,42 @@ class Category:
     return "\n".join(output)
 
 def create_spend_chart(categories):
-  pass
+  # collect category info
+  category_info = []
+  withdrawals_tot = 0
+  max_name_length = 0
+  for category in categories:
+    category_info.append([category.category])
+    withdrawals = 0
+    name_length = len(category.category)
+    if name_length > max_name_length:
+      max_name_length = name_length
+    for transaction in category.ledger:
+      amount = transaction["amount"]
+      if amount < 0:
+        withdrawals -= amount
+        withdrawals_tot -= amount
+    category_info[-1].append(withdrawals)
+
+  # create output list
+  output = ["Percentage spent by category"]
+
+  # add lines to output list
+  for i in reversed(range(0, 101, 10)):
+    output.append("{:3d}| ".format(i))
+
+    for info in category_info:
+      output[-1] += "{}  ".format("o" if info[1] and (100 * info[1] / withdrawals_tot) >= i else " ")
+
+  output.append("    -" + "-" * len(categories) * 3)
+
+  for i in range(0, max_name_length):
+    output.append(" " * 5)
+    for j in range(0, len(categories)):
+      try:
+        output[-1] += categories[j].category[i] + " " * 2
+      except:
+        output[-1] += " " * 3
+
+  # return new-line separated string from output list 
+  return '\n'.join(output)
